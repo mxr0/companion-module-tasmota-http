@@ -20,6 +20,18 @@ module.exports = async function (self) {
 			{ variableId: 'Fade', name: 'Fade (ON, OFF)' },			
 		)
 	}
+	
+	var status = await self.runCommand("Status 8")
+	if (status.StatusSNS != undefined && status.StatusSNS.ENERGY != undefined) { /* Device delivers power consumption metrics */
+		variables.push(
+			{ variableId: 'Power', name: 'Power usage (Watt)' },
+			{ variableId: 'Voltage', name: 'Main line voltage' },
+			{ variableId: 'Current', name: 'Current (Ampere)' },
+			{ variableId: 'Today', name: "Today's energy consumption (Watt hour)" },
+		)
+		Object.assign(self.state, status.StatusSNS.ENERGY)
+	}
+
 	self.setVariableDefinitions(variables)
 	variables.forEach( (item) => {
 		self.DATA[item.variableId] = self.state[item.variableId]

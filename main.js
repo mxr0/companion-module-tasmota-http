@@ -13,6 +13,7 @@ class ModuleInstance extends InstanceBase {
 	}
 
 	async init(config) {
+		this.state = {}
 		this.configUpdated(config)
 	}
 
@@ -23,6 +24,7 @@ class ModuleInstance extends InstanceBase {
 
 	async configUpdated(config) {
 		console.log("config", config)
+		console.log("XXXXXXXXXXXXXXXXXXXX")
 		this.config = config
 		if (this.config.host == "" || this.config.host == undefined) {
 			this.updateStatus(InstanceStatus.BadConfig, "Host address not configured")
@@ -48,6 +50,7 @@ class ModuleInstance extends InstanceBase {
 			this.log('error', JSON.stringify(state))
 			this.updateStatus(InstanceStatus.BadConfig, "Device has no POWER state, only power controlling devices (e.g. sockets, light bulbs) are supported")
 		}
+
 
 		this.updateVariableDefinitions() // export variable definitions		
 		this.updateActions() // export actions
@@ -121,6 +124,11 @@ class ModuleInstance extends InstanceBase {
 		try {
 			const response = await fetch(`http://${this.config.host}:${this.config.port}/cm?${auth}cmnd=${encodeURIComponent(command)}`)
 			const result = await response.json()
+			if (result.WARNING != undefined) {
+				this.updateStatus(InstanceStatus.ConnectionFailure, result.WARNING)
+			} else {
+				this.updateStatus(InstanceStatus.Ok)
+			}
 			return result
 		} catch (error) {
 			this.log("error", JSON.stringify(error))
